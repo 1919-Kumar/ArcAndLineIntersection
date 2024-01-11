@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcAndLineIntersection", "ArcAndLineIntersection.csproj", "{5100106A-1894-4292-BB7A-07E59C005CF8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5100106A-1894-4292-BB7A-07E59C005CF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5100106A-1894-4292-BB7A-07E59C005CF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5100106A-1894-4292-BB7A-07E59C005CF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5100106A-1894-4292-BB7A-07E59C005CF8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {96CD5F2C-F8EA-4371-AF96-7C7E6BCBD900}
+	EndGlobalSection
+EndGlobal
