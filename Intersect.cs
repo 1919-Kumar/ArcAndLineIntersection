@@ -48,8 +48,8 @@ namespace ArcAndLineIntersection
             skt_shroud.Activate(Sketch.ViewReorient.False);
 
             double radius = 100;
-            double startAngle = DegreesToRadians(70);
-            double endAngle = DegreesToRadians(210);
+            double startAngle = DegreesToRadians(190);
+            double endAngle = DegreesToRadians(310);
             Point3d startPt = new Point3d(-20, 20, 0);
             Point3d endPt = new Point3d(50, -210, 0);
 
@@ -127,7 +127,10 @@ namespace ArcAndLineIntersection
         }
 
         public static int GetUnloadOption(string dummy)
-        { return (int)NXOpen.Session.LibraryUnloadOption.Immediately; }
+        {
+            //return (int)Session.LibraryUnloadOption.Explicitly;
+            return (int)Session.LibraryUnloadOption.Immediately;
+        }
 
         public static string MakeUnique(string fileName)
         {
@@ -435,6 +438,177 @@ namespace ArcAndLineIntersection
             //else p(x, y) is not on line
         }
 
+        public static Point3d ArcStartPoint(NXOpen.Arc arc)
+        {
+            Point3d centerPoint = arc.CenterPoint;
+            double radius = arc.Radius;
+            double startAngle = arc.StartAngle;
+
+            double x = 0;
+            double y = 0;
+            double z = 0;
+
+            if (centerPoint.X is 0)
+            {
+                y = centerPoint.Y + radius * Math.Cos(startAngle);
+                z = centerPoint.Z + radius * Math.Sin(startAngle);
+            }
+            else if (centerPoint.Y is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(startAngle);
+                z = centerPoint.Z + radius * Math.Sin(startAngle);
+            }
+            else if (centerPoint.Z is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(startAngle);
+                y = centerPoint.Y + radius * Math.Sin(startAngle);
+            }
+
+            Point3d startPoint = new Point3d(x, y, z);
+
+            return startPoint;
+        }
+
+        public static Point3d ArcEndPoint(NXOpen.Arc arc)
+        {
+            Point3d centerPoint = arc.CenterPoint;
+            double radius = arc.Radius;
+            double endAngle = arc.EndAngle;
+
+            double x = 0;
+            double y = 0;
+            double z = 0;
+
+            if (centerPoint.X is 0)
+            {
+                y = centerPoint.Y + radius * Math.Cos(endAngle);
+                z = centerPoint.Z + radius * Math.Sin(endAngle);
+            }
+            else if (centerPoint.Y is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(endAngle);
+                z = centerPoint.Z + radius * Math.Sin(endAngle);
+            }
+            else if (centerPoint.Z is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(endAngle);
+                y = centerPoint.Y + radius * Math.Sin(endAngle);
+            }
+
+            Point3d startPoint = new Point3d(x, y, z);
+
+            return startPoint;
+        }
+
+        public static Point3d ArcMidPoint(NXOpen.Arc arc)
+        {
+            Point3d centerPoint = arc.CenterPoint;
+            double radius = arc.Radius;
+            double midAngle = (arc.StartAngle + arc.EndAngle) / 2.0;
+
+            double x = 0;
+            double y = 0;
+            double z = 0;
+
+            if (centerPoint.X is 0)
+            {
+                y = centerPoint.Y + radius * Math.Cos(midAngle);
+                z = centerPoint.Z + radius * Math.Sin(midAngle);
+            }
+            else if (centerPoint.Y is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(midAngle);
+                z = centerPoint.Z + radius * Math.Sin(midAngle);
+            }
+            else if (centerPoint.Z is 0)
+            {
+                x = centerPoint.X + radius * Math.Cos(midAngle);
+                y = centerPoint.Y + radius * Math.Sin(midAngle);
+            }
+
+            Point3d startPoint = new Point3d(x, y, z);
+
+            return startPoint;
+        }
+
+        private static bool IsPointOnArc(Point3d point, Arc arc)
+        {
+            Point3d arccenterPoint = arc.CenterPoint;
+            double radius = arc.Radius;
+
+            // Check if the point is on the circle that the arc belongs to
+            double distanceToPoint = LengthOfLine(point, arccenterPoint);
+            if (Math.Abs(distanceToPoint - radius) > 0.00001)
+            {
+                // Point is not on the circle
+                return false;
+            }
+
+            // Check if the point is within the angular range of the arc
+
+            double startAngle = arc.StartAngle;
+            double endAngle = arc.EndAngle;
+            double pointAngle = AngleOfTwoPointsInR(point, arccenterPoint);
+
+            // Adjust angles to be in the range [0, 2π)
+            if (startAngle < 0)
+            {
+                startAngle += 2 * Math.PI;
+            }
+            if (endAngle < 0)
+            {
+                endAngle += 2 * Math.PI;
+            }
+            if (pointAngle < 0)
+            {
+                pointAngle += 2 * Math.PI;
+            }
+
+            pointAngle = RadiansToDegrees(pointAngle);
+            if ((point.X <= 0 && point.Y >= 0 && point.Z == 0) || (point.X <= 0 && point.Y == 0 && point.Z >= 0) || (point.X == 0 && point.Y <= 0 && point.Z >= 0))
+            {
+                pointAngle = pointAngle + 180 - 360;
+            }
+            if ((point.X <= 0 && point.Y <= 0 && point.Z == 0) || (point.X <= 0 && point.Y == 0 && point.Z <= 0) || (point.X == 0 && point.Y <= 0 && point.Z <= 0))
+            {
+                pointAngle += 180;
+            }
+            pointAngle = DegreesToRadians(pointAngle);
+
+            // Check if the point angle is within the arc's angular range
+            if (startAngle < endAngle)
+            {
+                if (pointAngle >= startAngle && pointAngle <= endAngle)
+                {
+                    //Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
+                    //Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
+                    //Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
+                    return true;
+                }
+            }
+
+            double angle = endAngle;
+            if (RadiansToDegrees(endAngle) > 360)
+            {
+                angle = DegreesToRadians(RadiansToDegrees(endAngle) - 360);
+            }
+
+            if (startAngle > angle)
+            {
+                if ((pointAngle >= startAngle && pointAngle <= endAngle) || (pointAngle <= endAngle))
+                {
+                    //Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
+                    //Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
+                    //Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
+                    return true;
+                }
+            }
+            Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
+            Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
+            Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
+            return false;
+        }
+
         public static bool IsPointOnLine(Line line, Point3d point)
         {
             double X = point.X;
@@ -602,193 +776,6 @@ namespace ArcAndLineIntersection
                 }
             }
 
-            return false;
-        }
-
-        public static Point3d ArcStartPoint(NXOpen.Arc arc)
-        {
-            Point3d centerPoint = arc.CenterPoint;
-            double radius = arc.Radius;
-            double startAngle = arc.StartAngle;
-
-            double x = 0;
-            double y = 0;
-            double z = 0;
-
-            if (centerPoint.X is 0)
-            {
-                y = centerPoint.Y + radius * Math.Cos(startAngle);
-                z = centerPoint.Z + radius * Math.Sin(startAngle);
-            }
-            else if (centerPoint.Y is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(startAngle);
-                z = centerPoint.Z + radius * Math.Sin(startAngle);
-            }
-            else if (centerPoint.Z is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(startAngle);
-                y = centerPoint.Y + radius * Math.Sin(startAngle);
-            }
-
-            Point3d startPoint = new Point3d(x, y, z);
-
-            return startPoint;
-        }
-
-        public static Point3d ArcEndPoint(NXOpen.Arc arc)
-        {
-            Point3d centerPoint = arc.CenterPoint;
-            double radius = arc.Radius;
-            double endAngle = arc.EndAngle;
-
-            double x = 0;
-            double y = 0;
-            double z = 0;
-
-            if (centerPoint.X is 0)
-            {
-                y = centerPoint.Y + radius * Math.Cos(endAngle);
-                z = centerPoint.Z + radius * Math.Sin(endAngle);
-            }
-            else if (centerPoint.Y is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(endAngle);
-                z = centerPoint.Z + radius * Math.Sin(endAngle);
-            }
-            else if (centerPoint.Z is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(endAngle);
-                y = centerPoint.Y + radius * Math.Sin(endAngle);
-            }
-
-            Point3d startPoint = new Point3d(x, y, z);
-
-            return startPoint;
-        }
-
-        public static Point3d ArcMidPoint(NXOpen.Arc arc)
-        {
-            Point3d centerPoint = arc.CenterPoint;
-            double radius = arc.Radius;
-            double midAngle = (arc.StartAngle + arc.EndAngle) / 2.0;
-
-            double x = 0;
-            double y = 0;
-            double z = 0;
-
-            if (centerPoint.X is 0)
-            {
-                y = centerPoint.Y + radius * Math.Cos(midAngle);
-                z = centerPoint.Z + radius * Math.Sin(midAngle);
-            }
-            else if (centerPoint.Y is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(midAngle);
-                z = centerPoint.Z + radius * Math.Sin(midAngle);
-            }
-            else if (centerPoint.Z is 0)
-            {
-                x = centerPoint.X + radius * Math.Cos(midAngle);
-                y = centerPoint.Y + radius * Math.Sin(midAngle);
-            }
-
-            Point3d startPoint = new Point3d(x, y, z);
-
-            return startPoint;
-        }
-
-        private static bool IsPointOnArc(Point3d point, Arc arc)
-        {
-            double X = point.X;
-            double Y = point.Y;
-            double Z = point.Z;
-
-            Point3d arcStartPoint = ArcStartPoint(arc);
-            Point3d arcEndPoint = ArcStartPoint(arc);
-            Point3d arccenterPoint = arc.CenterPoint;
-            double radius = arc.Radius;
-
-            double x1 = arcStartPoint.X;
-            double y1 = arcStartPoint.Y;
-            double z1 = arcStartPoint.Z;
-
-            double x2 = arcEndPoint.Y;
-            double y2 = arcEndPoint.Y;
-            double z2 = arcEndPoint.Z;
-
-            double x = arccenterPoint.X;
-            double y = arccenterPoint.Y;
-            double z = arccenterPoint.Z;
-
-            // Check if the point is on the circle that the arc belongs to
-            double distanceToPoint = LengthOfLine(point, arccenterPoint);
-            if (Math.Abs(distanceToPoint - radius) > 0.00001)
-            {
-                // Point is not on the circle
-                return false;
-            }
-
-            // Check if the point is within the angular range of the arc
-            double angle1 = arc.StartAngle;
-            double angle2 = arc.EndAngle;
-
-            double startAngle = arc.StartAngle;
-            double endAngle = arc.EndAngle;
-            double pointAngle = AngleOfTwoPointsInR(point, arccenterPoint);
-
-            // Adjust angles to be in the range [0, 2π)
-            if (startAngle < 0)
-            {
-                startAngle += 2 * Math.PI;
-            }
-            if (endAngle < 0)
-            {
-                endAngle += 2 * Math.PI;
-            }
-            if (pointAngle < 0)
-            {
-                pointAngle += 2 * Math.PI;
-            }
-
-            pointAngle = RadiansToDegrees(pointAngle);
-            if ((point.X <= 0 && point.Y >= 0 && point.Z == 0) || (point.X <= 0 && point.Y == 0 && point.Z >= 0) || (point.X == 0 && point.Y <= 0 && point.Z >= 0))
-            {
-                pointAngle = pointAngle + 180 - 360;
-            }
-
-            pointAngle = DegreesToRadians(pointAngle);
-            // Check if the point angle is within the arc's angular range
-            if (startAngle < endAngle)
-            {
-                if (pointAngle >= startAngle && pointAngle <= endAngle)
-                {
-                    //Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
-                    //Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
-                    //Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
-                    return true;
-                }
-            }
-
-            double angle = endAngle;
-            if (RadiansToDegrees(endAngle) > 360)
-            {
-                angle = DegreesToRadians(RadiansToDegrees(endAngle) - 360);
-            }
-
-            if (startAngle > angle)
-            {
-                if ((pointAngle >= startAngle && pointAngle <= endAngle) || (pointAngle <= endAngle))
-                {
-                    //Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
-                    //Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
-                    //Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
-                    return true;
-                }
-            }
-            Echo("pointAngle is: " + RadiansToDegrees(pointAngle).ToString());
-            Echo("startAngle is: " + RadiansToDegrees(startAngle).ToString());
-            Echo("endAngle is: " + RadiansToDegrees(endAngle).ToString());
             return false;
         }
     }
